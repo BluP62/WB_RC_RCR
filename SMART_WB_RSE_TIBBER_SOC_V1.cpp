@@ -8,6 +8,7 @@
 #include <esp_system.h> 
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WebServer.h>
 #include <ArduinoJson.h>
 #include "driver/ledc.h"
 #include <time.h>
@@ -251,8 +252,11 @@ int     voltageP3 = 0;
 // Zustandsvariablen
 volatile bool RSEAktiv = (digitalRead(RSE) == LOW);
 bool letzterRSEStatus        = !RSEAktiv;  // für Flankenerkennung
-bool letzterRSEStatusSmartWB = !RSEAktiv;  //damit das Auslesen der SmartWBParameters beim RSE Flankenwechsel erzwungen wird.   
+bool letzterRSEStatusSmartWB = !RSEAktiv;  //damit das Auslesen der SmartWBParameters beim RSE Flankenwechsel erzwungen wird.
 int i = 1;                                 //allgemeiner Zähler um die 3 Spannungen und Ströme nacheinander anzeigen
+
+// WebServer auf Port 80
+WebServer server(80);
           
 
 /********************* Allgemeine Funktionen ********************/
@@ -460,6 +464,92 @@ int getSoc(const String& token) {
   return soc;
 }
 
+/*****************************************************************
+* @brief HTTP-Handler für die Webserver-Root-Seite
+* @param -
+******************************************************************/
+void handleRoot() {
+  String html = "<!DOCTYPE html><html lang='de'><head>";
+  html += "<meta charset='UTF-8'>";
+  html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+  html += "<meta http-equiv='refresh' content='2'>"; // Auto-Refresh alle 2 Sekunden
+  html += "<title>SmartWB Monitor</title>";
+  html += "<style>";
+  html += "body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: #ffffff; margin: 20px; }";
+  html += ".container { max-width: 600px; margin: 0 auto; background-color: #2a2a2a; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }";
+  html += "h1 { text-align: center; color: #4CAF50; margin-bottom: 20px; }";
+  html += ".info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444; }";
+  html += ".label { font-weight: bold; color: #aaa; }";
+  html += ".value { color: #fff; }";
+  html += ".status-offline { background-color: #f44336; color: white; padding: 2px 8px; border-radius: 3px; }";
+  html += ".status-ein { background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 3px; }";
+  html += ".status-aus { background-color: #ff9800; color: white; padding: 2px 8px; border-radius: 3px; }";
+  html += ".blink { animation: blink-animation 0.5s steps(2, start) infinite; }";
+  html += "@keyframes blink-animation { to { visibility: hidden; } }";
+  html += ".section { margin-top: 20px; }";
+  html += ".section-title { font-size: 1.2em; color: #4CAF50; margin-bottom: 10px; border-bottom: 2px solid #4CAF50; padding-bottom: 5px; }";
+  html += "</style>";
+  html += "</head><body>";
+  html += "<div class='container'>";
+  html += "<h1>SmartWB Monitor</h1>";
+
+  // Datum und Uhrzeit
+  html += "<div class='info-row'><span class='label'>Datum/Uhrzeit:</span><span class='value'>" + getZeitstempel() + "</span></div>";
+
+  // IP-Adresse
+  html += "<div class='info-row'><span class='label'>IP:</span><span class='value'>" + WiFi.localIP().toString() + "</span></div>";
+
+  // SmartWB Status
+  String statusClass = "";
+  String statusText = "";
+  if (actualPower == 0.0 && actualCurrent == 0 && maxCurrent == 0) {
+    statusClass = "status-offline";
+    statusText = "OFFLINE";
+  } else if (evseState) {
+    statusClass = "status-ein";
+    statusText = "EIN";
+  } else {
+    statusClass = "status-aus";
+    statusText = "AUS";
+  }
+  html += "<div class='info-row'><span class='label'>SmartWB:</span><span class='value'><span class='" + statusClass + "'>" + statusText + "</span></span></div>";
+
+  // SOC (nur wenn Fahrzeug angeschlossen)
+  if ((vehicleState == 2 || vehicleState == 3) && soc >= 0) {
+    html += "<div class='info-row'><span class='label'>SOC:</span><span class='value'>" + String(soc) + "%</span></div>";
+  }
+
+  // Stromsection
+  html += "<div class='section'>";
+  html += "<div class='section-title'>Ladedaten</div>";
+
+  // Max Current
+  html += "<div class='info-row'><span class='label'>Max Current:</span><span class='value'>" + String(maxCurrent) + "A</span></div>";
+
+  // Actual Current (mit blinkender Anzeige wenn RSE aktiv)
+  String currentDisplay = String(actualCurrent) + "A";
+  if (RSEAktiv) {
+    currentDisplay += " <span class='blink'>(RCR activ)</span>";
+  }
+  html += "<div class='info-row'><span class='label'>Actual Current:</span><span class='value'>" + currentDisplay + "</span></div>";
+
+  // Actual Power
+  html += "<div class='info-row'><span class='label'>Actual Power:</span><span class='value'>" + String(actualPower, 2) + "kW</span></div>";
+  html += "</div>";
+
+  // Spannungen und Ströme
+  html += "<div class='section'>";
+  html += "<div class='section-title'>Phasen</div>";
+  html += "<div class='info-row'><span class='label'>U1:</span><span class='value'>" + String(voltageP1) + "V</span><span class='label' style='margin-left: 20px;'>I1:</span><span class='value'>" + String(currentP1, 1) + "A</span></div>";
+  html += "<div class='info-row'><span class='label'>U2:</span><span class='value'>" + String(voltageP2) + "V</span><span class='label' style='margin-left: 20px;'>I2:</span><span class='value'>" + String(currentP2, 1) + "A</span></div>";
+  html += "<div class='info-row'><span class='label'>U3:</span><span class='value'>" + String(voltageP3) + "V</span><span class='label' style='margin-left: 20px;'>I3:</span><span class='value'>" + String(currentP3, 1) + "A</span></div>";
+  html += "</div>";
+
+  html += "</div></body></html>";
+
+  server.send(200, "text/html", html);
+}
+
 // ### Setup Routine ###
 void setup() {
   Serial.begin(115200);
@@ -545,6 +635,11 @@ void setup() {
   display.setCursor(0,0);           //Cursor wieder oben links setzen für Zeitausgabe
   display.print(getZeitstempel());  //Zeit auf OLED schreiben
   display.display();                //
+
+  // Webserver konfigurieren und starten
+  server.on("/", handleRoot);
+  server.begin();
+  Serial.println(getZeitstempel() + " Webserver gestartet auf http://" + WiFi.localIP().toString());
 
   // Interrupt konfigurieren
   attachInterrupt(digitalPinToInterrupt(RSE), isrRSE, CHANGE);
@@ -788,7 +883,8 @@ void loop() {
   }
 
   //Updates
-  display.display(); 
+  display.display();
+  server.handleClient(); // Webserver-Anfragen bearbeiten
   led1.update(now); // SmartWB (evse) Status anzeigen: BEREIT: Grün Fade, EIN: Grün kontinuierlich an, OFFLINE: Grün aus
   led2.update(now); // RSE aktiv: Rot blinkt, RSE nicht aktiv: Rot aus
   led3.update(now); // Watchdog LED sollte immer blitzen, solange der Watchdog aufgerufen wird
