@@ -486,6 +486,8 @@ void handleRoot() {
   html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
   html += "<meta http-equiv='refresh' content='5'>"; // Auto-Refresh alle 5 Sekunden
   html += "<title>SmartWB Monitor</title>";
+  // Favicon als SVG (Blitz-Symbol in grün passend zum Theme)
+  html += "<link rel='icon' type='image/svg+xml' href='data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><circle fill=\"%231a1a1a\" cx=\"16\" cy=\"16\" r=\"16\"/><path fill=\"%234CAF50\" d=\"M18,3L12,16h4l-2,13l8-13h-4L18,3z\"/></svg>'>";
   html += "<style>";
   html += "body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: #ffffff; margin: 20px; }";
   html += ".container { max-width: 600px; margin: 0 auto; background-color: #2a2a2a; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }";
