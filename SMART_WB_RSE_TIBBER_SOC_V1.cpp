@@ -486,8 +486,9 @@ void handleRoot() {
   html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
   html += "<meta http-equiv='refresh' content='5'>"; // Auto-Refresh alle 5 Sekunden
   html += "<title>SmartWB Monitor</title>";
-  // Favicon als SVG (Blitz-Symbol in grün passend zum Theme)
-  html += "<link rel='icon' type='image/svg+xml' href='data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><circle fill=\"%231a1a1a\" cx=\"16\" cy=\"16\" r=\"16\"/><path fill=\"%234CAF50\" d=\"M18,3L12,16h4l-2,13l8-13h-4L18,3z\"/></svg>'>";
+  // Favicon als Base64 eingebettetes PNG (32x32 Pixel, grüner Blitz auf dunklem Hintergrund)
+  // Um ein eigenes Favicon zu verwenden: Bild zu Base64 konvertieren mit z.B. https://base64.guru/converter/encode/image
+  html += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAA7AAAAOwBeShxvQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAIJSURBVFiF7ZbPS1RRFMc/5707M+rYqDMWGRRBURTRpkWbFkGbINoU0SKif6BdBEHQqk0EQUG0aBMRQdCmVYsIIqJFBEEUQVEURZGN+WN8vjvnthiduXPfm3kqaO0+OJz3Pu+e7zn3xz0X/rOyBBzgC7AJ1IJSUwIrgBNgD2gDl4Ap4AewDGwBu8Ax0AQuAmuBw9cDbwFHwAxwFTgCpoF74Ax4CewAR8Ap8AS4BnQCh68HXgMOcBuYBE6AaWAMmAfWgTVgF3gNTAFXgJ3A4euBN4EjYBY4Bp4Cw8AKsAmsA9vAF+AJcBnoBU4Dh68HXgV2gHvAPPAa6ANWgQ1gA9gGdoEXwBBwGzgMHL4e+AA4AhaAR0Af8BFYAjaBbWAP+AQsAoPAHWAvcPh64GNgBxgHhoAPwEdgCfgE7AMfgEVgALgFfA8cvh5YBnaBcWAI+AQsA0vAfmDbYRE4H1h/h88zsBNFeR5FxWSi0muUoqLXvldW/TpWXveYqnR58lWfqfJOlBnT1P8K1/8K1z8JqR+E9OtL8lfz++eA/Dm8OXPzIlN5d+kkTbNdSunNUko7aZrtaq1eLaV077TU0m5Kab0U0lTTdVcppQ8opTcppamm664opbSZUlobUUpviVLaEqW09pdSekOU0lYopSX/LqXUJqW0KqW09p+U0rpfSukr//nfpQv8AJbxLmBk7cQrAAAAAElFTkSuQmCC'>";
   html += "<style>";
   html += "body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: #ffffff; margin: 20px; }";
   html += ".container { max-width: 600px; margin: 0 auto; background-color: #2a2a2a; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }";
