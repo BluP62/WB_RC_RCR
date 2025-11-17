@@ -257,9 +257,9 @@ float actualPower = 0.0;
 float   currentP1 = 0.0;
 float   currentP2 = 0.0;
 float   currentP3 = 0.0;
-int     voltageP1 = 0;
-int     voltageP2 = 0;
-int     voltageP3 = 0;
+float   voltageP1 = 0.0;
+float   voltageP2 = 0.0;
+float   voltageP3 = 0.0;
 
 
 // Zustandsvariablen
@@ -503,7 +503,7 @@ void handleRoot() {
   html += "</style>";
   html += "</head><body>";
   html += "<div class='container'>";
-  html += "<h1>SmartWB Monitor</h1>";
+  html += "<h1>SmartWB Monitor " VERSION "</h1>";
 
   // Datum und Uhrzeit
   html += "<div class='info-row'><span class='label'>Datum/Uhrzeit:</span><span class='value'>" + getZeitstempel() + "</span></div>";
@@ -538,10 +538,12 @@ void handleRoot() {
   // Max Current
   html += "<div class='info-row'><span class='label'>Max Current:</span><span class='value'>" + String(maxCurrent) + "A</span></div>";
 
-  // Actual Current (mit blinkender Anzeige wenn RSE aktiv)
-  String currentDisplay = String(actualCurrent) + "A";
+  // Actual Current (mit roter Anzeige wenn RSE aktiv)
+  String currentDisplay = "";
   if (RSEAktiv) {
-    currentDisplay += " <span class='blink'>(RCR activ)</span>";
+    currentDisplay = "<span style='color: red;'>RCR aktiv</span> " + String(actualCurrent) + "A";
+  } else {
+    currentDisplay = String(actualCurrent) + "A";
   }
   html += "<div class='info-row'><span class='label'>Actual Current:</span><span class='value'>" + currentDisplay + "</span></div>";
 
@@ -552,9 +554,9 @@ void handleRoot() {
   // Spannungen und Ströme
   html += "<div class='section'>";
   html += "<div class='section-title'>Phasen</div>";
-  html += "<div class='info-row'><span class='label'>U1:</span><span class='value'>" + String(voltageP1) + "V</span><span class='label' style='margin-left: 20px;'>I1:</span><span class='value'>" + String(currentP1, 1) + "A</span></div>";
-  html += "<div class='info-row'><span class='label'>U2:</span><span class='value'>" + String(voltageP2) + "V</span><span class='label' style='margin-left: 20px;'>I2:</span><span class='value'>" + String(currentP2, 1) + "A</span></div>";
-  html += "<div class='info-row'><span class='label'>U3:</span><span class='value'>" + String(voltageP3) + "V</span><span class='label' style='margin-left: 20px;'>I3:</span><span class='value'>" + String(currentP3, 1) + "A</span></div>";
+  html += "<div class='info-row'><span class='label'>U1:</span><span class='value'>" + String(voltageP1, 1) + "V</span><span class='label' style='margin-left: 20px;'>I1:</span><span class='value'>" + String(currentP1, 1) + "A</span></div>";
+  html += "<div class='info-row'><span class='label'>U2:</span><span class='value'>" + String(voltageP2, 1) + "V</span><span class='label' style='margin-left: 20px;'>I2:</span><span class='value'>" + String(currentP2, 1) + "A</span></div>";
+  html += "<div class='info-row'><span class='label'>U3:</span><span class='value'>" + String(voltageP3, 1) + "V</span><span class='label' style='margin-left: 20px;'>I3:</span><span class='value'>" + String(currentP3, 1) + "A</span></div>";
   html += "</div>";
 
   html += "</div></body></html>";
@@ -880,13 +882,13 @@ void loop() {
     display.setCursor(0, 7 * CHAR_SIZE_Y);                                  // Cursor auf die 7. Zeile setzen
     switch (i) {
       case 1:
-        display.print("U1: " + String(voltageP1) + "V I1: " + (currentP1 < 10 ? " " : "") + String(currentP1) + "A");
+        display.print("U1: " + String(voltageP1, 1) + "V I1: " + (currentP1 < 10 ? " " : "") + String(currentP1, 1) + "A");
       break;
       case 2:
-        display.print("U2: " + String(voltageP2) + "V I2: " + (currentP2 < 10 ? " " : "") + String(currentP2) + "A");
+        display.print("U2: " + String(voltageP2, 1) + "V I2: " + (currentP2 < 10 ? " " : "") + String(currentP2, 1) + "A");
       break;
       case 3:
-        display.print("U3: " + String(voltageP3) + "V I3: " + (currentP3 < 10 ? " " : "") + String(currentP3) + "A");
+        display.print("U3: " + String(voltageP3, 1) + "V I3: " + (currentP3 < 10 ? " " : "") + String(currentP3, 1) + "A");
       break;
     }
      
