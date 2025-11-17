@@ -541,7 +541,7 @@ void handleRoot() {
   // Actual Current (mit roter Anzeige wenn RSE aktiv)
   String currentDisplay = "";
   if (RSEAktiv) {
-    currentDisplay = "<span style='color: red;'>RCR aktiv</span> " + String(actualCurrent) + "A";
+    currentDisplay = "<span style='color: red;' class='blink'>RCR aktiv</span> " + String(actualCurrent) + "A";
   } else {
     currentDisplay = String(actualCurrent) + "A";
   }
