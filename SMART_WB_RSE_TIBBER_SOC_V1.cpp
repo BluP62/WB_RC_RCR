@@ -15,7 +15,7 @@
 //Steuerungsparameter für den OLED Type
 #define OLED_TYPE_SH110X
 //#define OLED_TYPE_SSD1306
-#define WDT_TIMEOUT_SECONDS 5 // Standard-Timeout
+#define WDT_TIMEOUT_SECONDS 10 // Standard-Timeout
 #include <secrets.h>
 #include <esp_task_wdt.h>
 #include <esp_system.h> 
@@ -484,7 +484,7 @@ void handleRoot() {
   String html = "<!DOCTYPE html><html lang='de'><head>";
   html += "<meta charset='UTF-8'>";
   html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
-  html += "<meta http-equiv='refresh' content='2'>"; // Auto-Refresh alle 2 Sekunden
+  html += "<meta http-equiv='refresh' content='5'>"; // Auto-Refresh alle 5 Sekunden
   html += "<title>SmartWB Monitor</title>";
   html += "<style>";
   html += "body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: #ffffff; margin: 20px; }";
