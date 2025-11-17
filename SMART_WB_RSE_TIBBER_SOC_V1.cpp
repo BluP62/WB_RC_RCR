@@ -5,7 +5,7 @@
 // Ausgaben erfolgen per OLED (muss angeschlossen sein)
 // und einer Website
 // ---------------------------------------------------
-#define VERSION "2.0"
+#define VERSION "2.1"
 // SH110X-Pin,   ESP32-Pin,  Beschreibung
 // VCC,          3.3V,       Spannungsversorgung
 // GND,          GND,        Masse
