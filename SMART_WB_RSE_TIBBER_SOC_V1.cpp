@@ -1,3 +1,16 @@
+// ---------------------------------------------------
+// Diese Programm "ersetzt" die physische Verkabelung 
+// zwischen einem Rundsteuerempfänger Relais (NO) 
+// und den beiden RSE Pins in der Smart-WB
+// Ausgaben erfolgen per OLED (muss angeschlossen sein)
+// und einer Website
+// ---------------------------------------------------
+#define VERSION "2.0"
+// SH110X-Pin,   ESP32-Pin,  Beschreibung
+// VCC,          3.3V,       Spannungsversorgung
+// GND,          GND,        Masse
+// SCL,          GPIO 22,    I2C-Takt (kann auch GPIO 21 sein)
+// SDA,          GPIO 21,    I2C-Daten (kann auch GPIO 22 sein)
 
 //Steuerungsparameter für den OLED Type
 #define OLED_TYPE_SH110X
@@ -149,11 +162,11 @@ struct LedController {
 };
 
 // ---------------- Pinbelegung ----------------
+// Ausgänge
 const int LED1_PIN = 17;  // LED1: SmartWB Grün
 const int LED2_PIN = 23;  // LED2: RSE aktiv Rot
 const int LED3_PIN = 5;   // LED3: Watchdog Blau
-
-//const int BTN1_PIN = 4; // Ereignis1: muss durch evseState gesteuert werden
+// Eingänge
 const int RSE        = 16; // Ereignis2: RSE aktiv = LOW
 
 // ---------------- LED Objekte ----------------
@@ -408,7 +421,6 @@ void drawProgressBar(int progress) {
 * @param loginUrl: Konstante die witer oben definiert wurde, 
 * @param token wird zurückgegeben
 ******************************************************************/
-
 String getTibberToken() {
   HTTPClient http;
   http.begin(loginUrl);
@@ -555,7 +567,7 @@ void setup() {
   Serial.begin(115200);
 
   // Pins konfigurieren
-  pinMode(LED1_PIN, OUTPUT);  //Grün: SmartWB Zustand: EIN bei aktiv, FADE bei nicht aktiv
+  pinMode(LED1_PIN, OUTPUT);  // Grün: SmartWB Zustand: EIN bei aktiv, FADE bei nicht aktiv
   pinMode(LED2_PIN, OUTPUT);  // Rot
   pinMode(LED3_PIN, OUTPUT);  // Blau
   pinMode(RSE, INPUT_PULLUP); // Hier und an GND muss der Schließer des RSE Relais angeschlossen werden
@@ -618,6 +630,7 @@ void setup() {
   }
   Serial.print("Sketch-Dateiname: ");
   Serial.println(__FILE__);
+  Serial.println("Programmversion: " VERSION);
 
   Serial.println("");
   display.println();
