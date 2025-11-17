@@ -1,5 +1,6 @@
 # WB_RC_RCR
 EVSE Wallbox Remote Control for Ripple Control Receiver Input
+
 The Smart-WB (https://github.com/CurtRod/SimpleEVSE-WiFi) is based on EVSE which allows to be controlled by your grid operator to reduce the total energy consumption to 4,2kW. 
 The EVSE has 2 pins to be shortend and the wallbox will automatically reduce the power flow from (e.g. 11kW) to 4,2kw in order to reduce power consumption from the grid via ripple control reciever input (Rundsteuerempänger)
 Especially in Germany with the rollout of Smartmeter/gateways and control units, you can make use of this. 
