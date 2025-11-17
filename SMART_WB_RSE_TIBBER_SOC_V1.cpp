@@ -5,17 +5,18 @@
 // Ausgaben erfolgen per OLED (muss angeschlossen sein)
 // und einer Website
 // ---------------------------------------------------
-#define VERSION "2.2"
-// SH110X-Pin,   ESP32-Pin,  Beschreibung
+#define VERSION "2.3"
+// SH110X-Pin,   ESP32-Pin,  Comment
 // VCC,          3.3V,       Spannungsversorgung
-// GND,          GND,        Masse
-// SCL,          GPIO 22,    I2C-Takt (kann auch GPIO 21 sein)
-// SDA,          GPIO 21,    I2C-Daten (kann auch GPIO 22 sein)
+// GND,          GND,        Ground
+// SCL,          GPIO 22,    I2C-Clock
+// SDA,          GPIO 21,    I2C-Data
 
 //Steuerungsparameter für den OLED Type
 #define OLED_TYPE_SH110X
 //#define OLED_TYPE_SSD1306
 #define WDT_TIMEOUT_SECONDS 10 // Standard-Timeout
+#include <config.h>
 #include <secrets.h>
 #include <esp_task_wdt.h>
 #include <esp_system.h> 
@@ -200,8 +201,8 @@ const char* tibberEmail = TIBBER_EMAIL;
 const char* tibberPass  = TIBBER_PASSWORD;
 
 // Tibber API Endpunkte
-const char* loginUrl = "https://app.tibber.com/login.credentials";
-const char* gqlUrl   = "https://app.tibber.com/v4/gql";
+const char* loginUrl = TIBBER_LOGIN_URL;
+const char* gqlUrl   = TIBBER_GQ_URL;
 
 // GraphQL Query
 const char* gqlQuery = R"(
@@ -217,11 +218,10 @@ const char* gqlQuery = R"(
 }
 )";
 
-
 // IP-Adresse und URLs für lokale Requests
-const char* urlOn    = "http://192.168.178.54/cm?cmnd=Power%20On";
-const char* urlOff   = "http://192.168.178.54/cm?cmnd=Power%20Off";
-const char* urlParam = "http://192.168.178.30/getParameters";
+const char* urlOn    = URL_ON;
+const char* urlOff   = URL_OFF;
+const char* urlParam = URL_PARAM;
 
 // Blinker-Variablen
 unsigned long letzteUmschaltung = 0;
