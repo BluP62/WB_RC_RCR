@@ -195,28 +195,9 @@ Adafruit_SH1106G display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 const char* ssid     = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
 
-// Tibber Login-Daten
-// aus secrets.h
-const char* tibberEmail = TIBBER_EMAIL;
-const char* tibberPass  = TIBBER_PASSWORD;
-
-// Tibber API Endpunkte
-const char* loginUrl = TIBBER_LOGIN_URL;
-const char* gqlUrl   = TIBBER_GQ_URL;
-
-// GraphQL Query
-const char* gqlQuery = R"(
-{
-  me {
-    homes {
-      electricVehicles {
-        name
-        battery { percent }
-      }
-    }
-  }
-}
-)";
+#ifdef USE_EV_SOC_API
+const char* evSocUrl = EV_SOC_URL;
+#endif
 
 // IP-Adresse und URLs für lokale Requests
 const char* urlOn    = URL_ON;
@@ -242,11 +223,13 @@ const unsigned long SMARTWB_ANZEIGE_INTERVAL = 10000; //ms
 unsigned long letzteUIAnzeige = 0;
 unsigned long aktuelleUIAnzeige = 0;
 
-// tibber SoC vom Fahrzeug Anzeige Variablen
+#ifdef USE_EV_SOC_API
+// EV SoC Anzeige Variablen
 unsigned long letzteSocAnzeige = 0;
 unsigned long aktuelleSocAnzeige = 0;
 const unsigned long SOC_ANZEIGE_INTERVAL = 120000; //ms -> alle 2min
 int soc = -1;
+#endif
 
 //SmartWB Parameter die wir anzeigen möchten
 int  vehicleState = 1;
@@ -416,65 +399,36 @@ void drawProgressBar(int progress) {
   #endif
 }
 
+#ifdef USE_EV_SOC_API
 /*****************************************************************
-* @brief Login-Token für tibber holen
-* @param loginUrl: Konstante die witer oben definiert wurde, 
-* @param token wird zurückgegeben
+* @brief SoC des EV von lokalem Webserver holen
+* @return soc in Prozent, -1 bei Fehler
 ******************************************************************/
-String getTibberToken() {
+int getSoc() {
   HTTPClient http;
-  http.begin(loginUrl);
-  http.addHeader("Content-Type", "application/json");
-
-  String body = String("{\"email\":\"") + tibberEmail + "\",\"password\":\"" + tibberPass + "\"}";
-
-  int code = http.POST(body);
-  String token = "";
-
-  if (code == 200) {
-    DynamicJsonDocument doc(1024);
-    deserializeJson(doc, http.getString());
-    token = doc["token"].as<String>();
-  } else {
-    Serial.printf("Login fehlgeschlagen, Code: %d\n", code);
-  }
-
-  http.end();
-  return token;
-}
-
-/*****************************************************************
-* @brief SoC und Fahrzeug abfragen
-* @param token
-* @param soc wird zurückgegeben
-******************************************************************/
-int getSoc(const String& token) {
-  HTTPClient http;
-  http.begin(gqlUrl);
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("Authorization", "Bearer " + token);
-
-  // ✅ Korrektes JSON für GraphQL
-  String body = "{\"query\":\"{ me { homes { electricVehicles { name battery { percent } } } } }\"}";
-
-  int code = http.POST(body);
+  http.begin(evSocUrl);
+  int code = http.GET();
   int soc = -1;
 
   if (code == 200) {
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(512);
     if (deserializeJson(doc, http.getString()) == DeserializationError::Ok) {
-      soc = doc["data"]["me"]["homes"][0]["electricVehicles"][0]["battery"]["percent"];
+      if (doc["success"].as<bool>()) {
+        soc = doc["soc"].as<int>();
+      } else {
+        Serial.println("EV SOC API: success=false");
+      }
     } else {
-      Serial.println("❌ Fehler beim JSON-Parsing");
+      Serial.println("EV SOC API: JSON-Parsing Fehler");
     }
   } else {
-    Serial.printf("GraphQL-Fehler (Code: %d)\n", code);
-    Serial.println(http.getString()); // 🔍 Ausgabe der Fehlermeldung
+    Serial.printf("EV SOC API Fehler (Code: %d)\n", code);
   }
 
   http.end();
   return soc;
 }
+#endif
 
 /*****************************************************************
 * @brief HTTP-Handler für die Webserver-Root-Seite
@@ -529,10 +483,12 @@ void handleRoot() {
   }
   html += "<div class='info-row'><span class='label'>SmartWB:</span><span class='value'><span class='" + statusClass + "'>" + statusText + "</span></span></div>";
 
+#ifdef USE_EV_SOC_API
   // SOC (nur wenn Fahrzeug angeschlossen)
   if ((vehicleState == 2 || vehicleState == 3) && soc >= 0) {
     html += "<div class='info-row'><span class='label'>SOC:</span><span class='value'>" + String(soc) + "%</span></div>";
   }
+#endif
 
   // Stromsection
   html += "<div class='section'>";
@@ -662,9 +618,10 @@ void setup() {
   // Interrupt konfigurieren
   attachInterrupt(digitalPinToInterrupt(RSE), isrRSE, CHANGE);
 
-// Ertsmaligre Initialisierrung um einen Soc zu erhalten
-  String token = getTibberToken();
-  soc = getSoc(token);
+// Erstmalige Initialisierung um einen SoC zu erhalten
+#ifdef USE_EV_SOC_API
+  soc = getSoc();
+#endif
 
     // Fügt die aktuelle Task dem Watchdog hinzu. 
   // Das ESP-IDF-Framework initialisiert den Watchdog oft automatisch.
@@ -787,21 +744,15 @@ void loop() {
       display.display();                //
   }
 
-  //SOC des EVs aus der Tibber Abfrage holen. Das machen wir aber nur alle 10min 
-  // zum Testen einfach Zufallszahl
-  //int soc=random(0,100);
-
-    // Alle SOC_ANZEIGE_INTERVAL msec Soc holen (!!! sollte nicht kleiner als 60sec = 600000ms !!!)
+#ifdef USE_EV_SOC_API
+  // Alle SOC_ANZEIGE_INTERVAL msec SoC vom lokalen EV-SOC-Server holen
   aktuelleSocAnzeige = millis();
   if (aktuelleSocAnzeige - letzteSocAnzeige >= SOC_ANZEIGE_INTERVAL) {
     letzteSocAnzeige = aktuelleSocAnzeige;
-    // soc holen
-    String token = getTibberToken();
-    if (token != "") {
-      soc = getSoc(token);
-      Serial.printf("SoC: %d%%\n", soc);
-    }
+    soc = getSoc();
+    Serial.printf("SoC: %d%%\n", soc);
   }
+#endif
 
   //Werte aus der SmartWB alle SMARTWBCOUNT msec anzeigen
   aktuelleSmartWBAnzeige = millis();
@@ -831,10 +782,12 @@ void loop() {
     if (httpCode >= 0) {
       display.println(evseState ? "EIN" : "AUS");
       // nur wenn die SmartWB ONLINE ist und das Fzg. angeschlossen (vehicleState=2) oder lädt (vehicleState=3), zeigen wir auch den SOC an, sonst nicht
+      #ifdef USE_EV_SOC_API
       if (vehicleState==2||vehicleState==3) {
         display.setCursor( 13 * CHAR_SIZE_X, 3 * CHAR_SIZE_Y);
-       display.println("SOC: " + String(soc) + "%");
+        display.println("SOC: " + String(soc) + "%");
       }
+      #endif
     }
     else {
       #ifdef OLED_TYPE_SSD1306
