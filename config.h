@@ -9,9 +9,13 @@
 #define URL_OFF   "http://10.0.0.5/cm?cmnd=Power%20Off";
 #define URL_PARAM "http://10.0.1.0/getParameters";
 
-// Tibber API Endpunkte
-#define TIBBER_LOGIN_URL "https://app.tibber.com/login.credentials";
-#define TIBBER_GQ_URL    "https://app.tibber.com/v4/gql";
+// EV SOC API (lokaler Webserver)
+// Auskommentieren wenn kein lokaler EV-SOC-Server vorhanden
+#define USE_EV_SOC_API
+
+#ifdef USE_EV_SOC_API
+  #define EV_SOC_URL "http://pv-automat:5001/api/ev_soc"
+#endif
 
 // ----- Pins -----
 
