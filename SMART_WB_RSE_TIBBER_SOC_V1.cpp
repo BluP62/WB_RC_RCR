@@ -407,6 +407,8 @@ void drawProgressBar(int progress) {
 int getSoc() {
   HTTPClient http;
   http.begin(evSocUrl);
+  http.setTimeout(3000); // 3s Timeout, damit Watchdog (5s) nicht auslöst
+  esp_task_wdt_reset();  // Watchdog vor HTTP-Call zurücksetzen
   int code = http.GET();
   int soc = -1;
 
