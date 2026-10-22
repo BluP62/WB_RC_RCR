@@ -6,7 +6,7 @@
 // Ausgaben erfolgen per OLED (muss angeschlossen sein)
 // und einer Website
 // ---------------------------------------------------
-#define VERSION "3.1"
+#define VERSION "3.2"
 // SH110X-Pin,   ESP32-Pin,  Comment
 // VCC,          3.3V,       Spannungsversorgung
 // GND,          GND,        Ground
@@ -251,6 +251,7 @@ volatile bool RSEAktiv = (digitalRead(RSE) == LOW);
 bool letzterRSEStatus        = !RSEAktiv;  // für Flankenerkennung
 bool letzterRSEStatusSmartWB = !RSEAktiv;  //damit das Auslesen der SmartWBParameters beim RSE Flankenwechsel erzwungen wird.
 int i = 1;                                 //allgemeiner Zähler um die 3 Spannungen und Ströme nacheinander anzeigen
+int httpCode = 0;                          //letzter HTTP-Code der SmartWB-Abfrage (<0 = nicht erreichbar); global, damit der Wert zwischen den loop()-Durchläufen erhalten bleibt
 
 // WebServer auf Port 80
 WebServer server(80);
@@ -644,7 +645,6 @@ void setup() {
 
 void loop() {
   unsigned long now = millis();
-  int httpCode;
 
   // RSE Flankenerkennung
   if (RSEAktiv != letzterRSEStatus) {
