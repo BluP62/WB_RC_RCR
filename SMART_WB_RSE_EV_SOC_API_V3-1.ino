@@ -1,3 +1,4 @@
+
 // ---------------------------------------------------
 // Diese Programm "ersetzt" die physische Verkabelung 
 // zwischen einem Rundsteuerempfänger Relais (NO) 
@@ -5,7 +6,7 @@
 // Ausgaben erfolgen per OLED (muss angeschlossen sein)
 // und einer Website
 // ---------------------------------------------------
-#define VERSION "2.3"
+#define VERSION "3.1"
 // SH110X-Pin,   ESP32-Pin,  Comment
 // VCC,          3.3V,       Spannungsversorgung
 // GND,          GND,        Ground
@@ -863,10 +864,4 @@ void loop() {
   led3.update(now); // Watchdog LED sollte immer blitzen, solange der Watchdog aufgerufen wird
       
 }
-
-
-
-
-
-
 
